@@ -1,0 +1,35 @@
+---
+title: "Response Rate Denominator"
+format: html
+editor: visual
+---
+
+
+```{r}
+
+# create a polygon that covers the area we want.
+
+# generate 5km buffers around health facilities
+liberiaHF_5kmBuffer.sf <- st_buffer(liberiaHF.sf, dist = 5e3)
+
+# remove health facility buffers
+gbNCHAP_area.sf <- st_difference(st_make_valid(grandBassaCounty.sf), st_union(liberiaHF_5kmBuffer.sf))
+
+# remover district 1
+dist1.sf <- dplyr::filter(liberiaHD.sf, h_distr_id == 403)
+gbNCHAP_area.sf <- st_difference(gbNCHAP_area.sf, dist1.sf)
+
+gbNCHAP_area.vec <- terra::vect(gbNCHAP_area.sf)
+
+terra::extract(
+  lbr_15to49.rast,
+  gbNCHAP_area.vec, 
+  fun = sum, 
+  gbNCHAP_area.vec, 
+  na.rm = T, 
+  exact = T
+  )
+
+
+```
+

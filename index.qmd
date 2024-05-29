@@ -1,0 +1,81 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Load Environment
+
+```{r loadEnvironment}
+
+library(dplyr)
+library(sf)
+library(tmap)
+library(wpgpDownloadR)
+library(terra)
+library(nngeo)
+
+# Health districts
+liberiaHD.sf <- st_read(file.path("data", "Health district boundaries.shp"))
+liberiaHD.sf <- st_transform(liberiaHD.sf, 32629)
+
+# Health Facility locations?
+liberiaHF.sf <- st_read(file.path("data", "HealthFacilities", "HealthFacilities.shp"))
+
+# raster data (SOURCE 10.5258/SOTON/WP00696)
+lbr15.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_15_2020_constrained.tif"))
+lbr20.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_20_2020_constrained.tif"))
+lbr25.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_25_2020_constrained.tif"))
+lbr30.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_30_2020_constrained.tif"))
+lbr35.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_35_2020_constrained.tif"))
+lbr40.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_40_2020_constrained.tif"))
+lbr45.rast <- terra::rast(file.path("data", "pop_raster", "lbr_f_45_2020_constrained.tif"))
+
+```
+
+
+## Process raster data
+
+```{r}
+
+# put these into a single vector
+wp.rast <- c(lbr15.rast, lbr20.rast, lbr25.rast, lbr30.rast, lbr35.rast, lbr40.rast, lbr45.rast)
+
+# get the sum
+lbr_15to49.rast <- sum(wp.rast)
+
+# reproject the raster in to UTM 29N (EPSG:32629)
+lbr_15to49.rast <- terra::project(lbr_15to49.rast, "EPSG:32629")
+
+```
+
+
+## Process Liberia health district data
+
+```{r}
+# get single outber boundary for liberia (adm0)
+liberia_adm0.sf <- st_union(liberiaHD.sf)
+liberia_adm0.sf <- nngeo::st_remove_holes(liberia_adm0.sf)
+
+# get single outer boundary for Grand Bassa
+grandBassaHD.sf <- dplyr::filter(liberiaHD.sf, county_id == 4)
+grandBassaCounty.sf <- st_union(grandBassaHD.sf)
+grandBassaCounty.sf <- nngeo::st_remove_holes(grandBassaCounty.sf)
+
+
+```
+
+
+# visualize
+
+```{r}
+tmap_mode("view")
+
+tm_shape(liberia_adm0.sf) + tm_polygons()
+
+```
+
+
+
+
+

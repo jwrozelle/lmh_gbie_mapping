@@ -1,0 +1,116 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Libraries
+
+```{r}
+
+library(extrafont)
+
+# Import fonts from the system
+font_import(prompt = FALSE)
+
+# Load fonts into R session
+loadfonts(device = "win")
+
+
+
+```
+
+
+## Map for paper
+
+```{r}
+
+grandBassaHD.sf$name <- ifelse(grandBassaHD.sf$name == "Commonwealth", "Buchanan", grandBassaHD.sf$name)
+
+grandBassaHD.sf$NCHAP_start <- NA
+grandBassaHD.sf$NCHAP_start <- ifelse(grandBassaHD.sf$name %in% "District #1", "Not yet implemented", grandBassaHD.sf$NCHAP_start)
+grandBassaHD.sf$NCHAP_start <- ifelse(grandBassaHD.sf$name %in% c("Campwood", "District #3 (A,B)"), "September 2018", grandBassaHD.sf$NCHAP_start)
+grandBassaHD.sf$NCHAP_start <- ifelse(grandBassaHD.sf$name %in% c("District #2", "District #3 (C)"), "February 2019", grandBassaHD.sf$NCHAP_start)
+grandBassaHD.sf$NCHAP_start <- ifelse(grandBassaHD.sf$name %in% c("District #4"), "April 2021", grandBassaHD.sf$NCHAP_start)
+grandBassaHD.sf$NCHAP_start <- ifelse(grandBassaHD.sf$name %in% c("Owensgrove", "Buchanan"), "June 2022", grandBassaHD.sf$NCHAP_start)
+
+grandBassaHD.sf$NCHAP_start <- factor(
+  grandBassaHD.sf$NCHAP_start, 
+  levels = c(
+    "Not yet implemented", 
+    "September 2018",
+    "February 2019",
+    "April 2021",
+    "June 2022"
+    )
+  )
+
+grandBassaHD.sf$y_adjust <- 0
+grandBassaHD.sf$y_adjust <- ifelse(grandBassaHD.sf$name %in% "District #4", -1.6, grandBassaHD.sf$y_adjust)
+# grandBassaHD.sf$y_adjust <- ifelse(grandBassaHD.sf$name %in% "District #3 (A,B)", -0.5, grandBassaHD.sf$y_adjust)
+grandBassaHD.sf$y_adjust <- ifelse(grandBassaHD.sf$name %in% "District #1", +1, grandBassaHD.sf$y_adjust)
+
+grandBassaHD.sf$x_adjust <- 0
+grandBassaHD.sf$x_adjust <- ifelse(grandBassaHD.sf$name %in% "District #4", -1.4, grandBassaHD.sf$x_adjust)
+grandBassaHD.sf$x_adjust <- ifelse(grandBassaHD.sf$name %in% "Owensgrove", +1, grandBassaHD.sf$x_adjust)
+grandBassaHD.sf$x_adjust <- ifelse(grandBassaHD.sf$name %in% "District #3 (A,B)", +0.8, grandBassaHD.sf$x_adjust)
+
+
+color_palette <- colorRampPalette(c("#E1F5FE", "#0288D1"))(4)
+color_palette <- c("lightgrey", color_palette)
+
+mapFont <- "Garamond"
+
+
+map1 <- tm_shape(grandBassaHD.sf) + 
+  tm_polygons(
+    fill = "NCHAP_start", 
+    tm_scale_categorical(values = color_palette), 
+    col = "grey",
+    fill.legend = tm_legend(
+    position = c(
+      "right",
+      "bottom"
+    ),
+    title = "Start of NCHAP Child Health\nModule Implementation",
+    title.size = 0.7,
+    fontfamily = mapFont
+  )
+    ) + 
+  tm_text(
+    "name",
+    xmod = "x_adjust",
+    ymod = "y_adjust",
+    # fontfamily = mapFont,
+    fontfamily = mapFont,
+    shadow = "white"
+    ) +
+  opt_tm_text(
+    just = "center"
+  ) +
+  tm_shape(grandBassaCounty.sf) +
+  tm_polygons(fill_alpha = 0, col = "darkgrey") +
+  tm_shape(liberia_adm0.sf) + 
+  tm_polygons(fill_alpha = 0, col = "black",) + 
+  tm_layout(
+    frame = F,
+    fontfamily = mapFont,
+    legend.text.fontfamily = mapFont,
+    legend.title.fontfamily = mapFont,
+    legend.title.fontface = "bold",
+    scalebar.text.size = 0.9
+  ) + 
+  tm_scalebar(
+    position = c(
+      "left",
+      "bottom"
+    ), 
+    width = 10
+  )
+
+map1
+
+tmap_save(map1, filename = file.path("data", "map4.png"), width = 6, height = 6, units = "in", dpi=400)
+
+```
+
